@@ -1,0 +1,11 @@
+-- CreateTable
+CREATE TABLE `Student` (
+    `id` INTEGER NOT NULL AUTO_INCREMENT,
+    `name` VARCHAR(191) NOT NULL,
+    `roll` VARCHAR(191) NOT NULL,
+    `parentEmail` VARCHAR(191) NOT NULL,
+    `image` LONGBLOB NULL,
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
