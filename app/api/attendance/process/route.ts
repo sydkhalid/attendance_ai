@@ -137,7 +137,7 @@ export async function POST(req: Request) {
       const matchCmd = new SearchFacesByImageCommand({
         CollectionId: process.env.AWS_REKOG_COLLECTION!,
         Image: { Bytes: cropped },
-        FaceMatchThreshold: 65,
+        FaceMatchThreshold: 95,
         MaxFaces: 1,
       });
 

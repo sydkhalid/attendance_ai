@@ -1,36 +1,148 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-## Getting Started
+# 📸 Attendance AI – Automated Face Recognition Attendance System
 
-First, run the development server:
+A smart attendance automation system built using **Next.js 14, Prisma, MySQL, AWS Rekognition, and Sharp**.  
+Upload a **group classroom image** → the system automatically detects students, marks attendance, and sends email alerts.
+
+---
+
+## 🚀 Features
+
+- 🎭 **AI Face Detection** (AWS Rekognition)
+- 👥 Group photo → auto face recognition
+- 👨‍🎓 **Student registration with photo**
+- 📨 Email alerts for absentees
+- 🗄️ **Prisma + MySQL** database
+- 📅 Attendance logs & daily reporting
+- ⚡ Optimized image processing (Sharp)
+- 🎛️ Full Admin Dashboard (Add/View Students, Attendance Control)
+
+---
+
+## 🧱 Tech Stack
+
+| Layer | Technology |
+|-------|------------|
+| **Frontend** | Next.js 14 (App Router), TailwindCSS |
+| **Backend** | Node.js, Next.js Server Actions |
+| **Database** | Prisma ORM + MySQL |
+| **AI Engine** | AWS Rekognition |
+| **Utilities** | Sharp, Nodemailer |
+| **Auth** | (Optional) NextAuth |
+
+---
+
+## 📂 Project Structure
+
+```
+attendance-ai/
+│── app/
+│   ├── dashboard/
+│   ├── api/
+│   │   ├── students/
+│   │   └── attendance/
+│── prisma/
+│   ├── schema.prisma
+│── public/
+│   └── uploads/students/
+│── lib/
+│   └── prisma.ts
+│── .env
+│── README.md
+```
+
+---
+
+## ⚙️ Environment Variables
+
+Create a `.env` file:
+
+```
+DATABASE_URL="mysql://root:password@localhost:3306/attendance_ai"
+
+AWS_REGION="ap-south-1"
+AWS_ACCESS_KEY_ID="YOUR_KEY"
+AWS_SECRET_ACCESS_KEY="YOUR_SECRET"
+AWS_REKOG_COLLECTION="attendance_ai"
+```
+
+---
+
+## ▶️ Getting Started
+
+Install dependencies:
+
+```bash
+npm install
+```
+
+Push Prisma schema:
+
+```bash
+npx prisma db push
+```
+
+Start development server:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open:  
+👉 http://localhost:3000
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 🤖 Face Recognition Workflow
 
-## Learn More
+1. Register student → upload clear face photo  
+2. Photo saved in `/public/uploads/students/`  
+3. AWS Rekognition indexes face  
+4. Attendance upload → group image processed  
+5. Each detected face is matched with Rekognition collection  
+6. Prisma stores **Present / Absent**  
+7. Emails sent for absent students
 
-To learn more about Next.js, take a look at the following resources:
+---
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 📧 Email Notification
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Uses Nodemailer (SMTP):
 
-## Deploy on Vercel
+- Gmail  
+- Outlook  
+- Private SMTP  
+- AWS SES  
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+---
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 📌 Deployment
+
+### 🔹 Vercel (Recommended)
+- Supports Next.js App Router
+- Add environment variables
+- Use Planetscale / Neon / RDS for MySQL
+
+### 🔹 AWS EC2 / Lightsail
+- Run Next.js + MySQL locally on server
+- Install PM2 to keep app alive
+
+---
+
+## 🙌 Contributing
+
+Pull Requests are welcome!  
+If you want to improve AI accuracy or extend the dashboard, feel free to collaborate.
+
+---
+
+## ⭐ Support the Project
+
+If you find this useful, please ⭐ star the repository on GitHub!
+
+---
+
+## 📜 License
+
+MIT License – free to use for personal and commercial projects.
+
