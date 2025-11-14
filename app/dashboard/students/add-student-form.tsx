@@ -10,23 +10,35 @@ export default function AddStudentForm() {
     parentEmail: "",
   });
 
-  const [image, setImage] = useState<File | null>(null);
-  const [preview, setPreview] = useState<string | null>(null);
+  const [images, setImages] = useState<File[]>([]);
+  const [previews, setPreviews] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
 
-  const handleImage = (e: any) => {
-    const file = e.target.files[0];
-    if (!file) return;
+  // MULTIPLE IMAGE HANDLER
+  const handleImages = (e: any) => {
+    const files = Array.from(e.target.files) as File[];
 
-    setImage(file);
-    setPreview(URL.createObjectURL(file));
+    if (files.length === 0) return;
+
+    setImages(files);
+    setPreviews(files.map((f) => URL.createObjectURL(f)));
   };
 
   const handleSubmit = async (e: any) => {
     e.preventDefault();
 
-    if (!form.name || !form.roll || !form.parentEmail || !image) {
-      toast.error("All fields & photo are required!");
+    if (!form.name || !form.roll || !form.parentEmail) {
+      toast.error("All fields are required!");
+      return;
+    }
+
+    if (images.length === 0) {
+      toast.error("Please upload at least 1 photo!");
+      return;
+    }
+
+    if (images.length > 5) {
+      toast.error("Maximum 5 photos allowed!");
       return;
     }
 
@@ -36,7 +48,8 @@ export default function AddStudentForm() {
     data.append("name", form.name);
     data.append("roll", form.roll);
     data.append("parentEmail", form.parentEmail);
-    data.append("image", image);
+
+    images.forEach((img) => data.append("images[]", img));
 
     const res = await fetch("/api/students/add", {
       method: "POST",
@@ -49,10 +62,10 @@ export default function AddStudentForm() {
     if (json.success) {
       toast.success("Student added successfully!");
 
-      // RESET FORM
+      // RESET fields
       setForm({ name: "", roll: "", parentEmail: "" });
-      setImage(null);
-      setPreview(null);
+      setImages([]);
+      setPreviews([]);
     } else {
       toast.error(json.message || "Failed to add student");
     }
@@ -87,24 +100,34 @@ export default function AddStudentForm() {
           onChange={(e) => setForm({ ...form, parentEmail: e.target.value })}
         />
 
+        {/* MULTIPLE IMAGE UPLOAD */}
         <div>
-          <label className="block mb-1 text-sm text-gray-600">
-            Upload Student Photo
-          </label>
-          <input type="file" accept="image/*" onChange={handleImage} />
+          <label className="block mb-1 text-sm">Upload 1–5 Student Photos</label>
 
-          {preview && (
-            <img
-              src={preview}
-              className="w-32 h-32 mt-2 object-cover rounded border"
-            />
+          <input
+            type="file"
+            accept="image/*"
+            multiple
+            onChange={handleImages}
+          />
+
+          {previews.length > 0 && (
+            <div className="grid grid-cols-3 gap-2 mt-3">
+              {previews.map((src, i) => (
+                <img
+                  key={i}
+                  src={src}
+                  className="w-24 h-24 object-cover rounded border"
+                />
+              ))}
+            </div>
           )}
         </div>
 
         <button
           type="submit"
           disabled={loading}
-          className="bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition disabled:bg-gray-400"
+          className="bg-blue-600 text-white py-2 rounded hover:bg-blue-700 disabled:bg-gray-400"
         >
           {loading ? "Saving..." : "Save Student"}
         </button>

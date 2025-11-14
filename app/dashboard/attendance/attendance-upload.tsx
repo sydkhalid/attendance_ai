@@ -7,7 +7,9 @@ export default function AttendanceUpload() {
   const [image, setImage] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [processing, setProcessing] = useState(false);
-  const [results, setResults] = useState<any[]>([]);
+
+  // IMPORTANT: results is NOT an array anymore.
+  const [results, setResults] = useState<any | null>(null);
 
   const handleImage = (e: any) => {
     const file = e.target.files[0];
@@ -39,7 +41,7 @@ export default function AttendanceUpload() {
       return;
     }
 
-    setResults(json.students);
+    setResults(json); // <-- IMPORTANT: store whole response
     toast.success("Attendance processed!");
   };
 
@@ -47,8 +49,10 @@ export default function AttendanceUpload() {
     <div className="border p-4 bg-white rounded shadow-sm">
       <h2 className="text-lg font-semibold mb-3">Upload Classroom Image</h2>
 
+      {/* Upload Photo */}
       <input type="file" accept="image/*" onChange={handleImage} />
 
+      {/* Preview */}
       {preview && (
         <img
           src={preview}
@@ -56,6 +60,7 @@ export default function AttendanceUpload() {
         />
       )}
 
+      {/* Process Button */}
       <button
         onClick={handleSubmit}
         className="mt-4 bg-blue-600 text-white px-4 py-2 rounded"
@@ -64,14 +69,38 @@ export default function AttendanceUpload() {
         {processing ? "Processing..." : "Process Attendance"}
       </button>
 
-      {results.length > 0 && (
+      {/* Results Section */}
+      {results && (
         <div className="mt-6">
-          <h3 className="text-lg font-bold mb-2">Detected Students:</h3>
-          <ul className="list-disc ml-6">
-            {results.map((s: any, i: number) => (
-              <li key={i}>{s.name}</li>
-            ))}
-          </ul>
+
+          {/* Present Students */}
+          {results.present?.length > 0 && (
+            <>
+              <h3 className="text-lg font-bold mb-2 text-green-600">
+                Present Students:
+              </h3>
+              <ul className="list-disc ml-6 mb-4">
+                {results.present.map((s: any) => (
+                  <li key={s.id}>{s.name}</li>
+                ))}
+              </ul>
+            </>
+          )}
+
+          {/* Absent Students */}
+          {results.absent?.length > 0 && (
+            <>
+              <h3 className="text-lg font-bold mb-2 text-red-600">
+                Absent Students:
+              </h3>
+              <ul className="list-disc ml-6">
+                {results.absent.map((s: any) => (
+                  <li key={s.id}>{s.name}</li>
+                ))}
+              </ul>
+            </>
+          )}
+
         </div>
       )}
     </div>

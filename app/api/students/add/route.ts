@@ -7,7 +7,6 @@ import {
   IndexFacesCommand,
 } from "@aws-sdk/client-rekognition";
 
-// AWS Rekognition Client
 const rekog = new RekognitionClient({
   region: process.env.AWS_REGION,
   credentials: {
@@ -23,67 +22,73 @@ export async function POST(req: Request) {
     const name = form.get("name") as string;
     const roll = form.get("roll") as string;
     const parentEmail = form.get("parentEmail") as string;
-    const image = form.get("image") as File;
 
-    if (!name || !roll || !parentEmail || !image) {
+    // MULTIPLE IMAGES
+    const images = form.getAll("images[]") as File[];
+
+    if (!name || !roll || !parentEmail || images.length === 0) {
       return NextResponse.json({
         success: false,
-        message: "All fields are required",
+        message: "All fields & 1–5 photos required",
       });
     }
 
-    // ---------------------------------------------------------
-    // 1️⃣ Convert image to buffer
-    // ---------------------------------------------------------
-    const arrayBuffer = await image.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
-
-    // ---------------------------------------------------------
-    // 2️⃣ Save image to /public/uploads/students/
-    // ---------------------------------------------------------
+    // Create folder if missing
     const uploadDir = path.join(process.cwd(), "public", "uploads", "students");
-
     if (!fs.existsSync(uploadDir)) {
       fs.mkdirSync(uploadDir, { recursive: true });
     }
 
-    const fileName = Date.now() + "-" + image.name;
-    const filePath = path.join(uploadDir, fileName);
+    // Store all Rekognition face data
+    const faceIds: string[] = [];
+    const imageIds: string[] = [];
 
-    fs.writeFileSync(filePath, buffer);
+    // Loop multiple images
+    for (const img of images) {
+      const arrayBuffer = await img.arrayBuffer();
+      const buffer = Buffer.from(arrayBuffer);
 
-    // ---------------------------------------------------------
-    // 3️⃣ Send image to AWS Rekognition – Index Face
-    // ---------------------------------------------------------
-    const indexCmd = new IndexFacesCommand({
-      CollectionId: process.env.AWS_REKOG_COLLECTION!,
-      ExternalImageId: roll, // Student roll is unique
-      Image: { Bytes: buffer },
-      DetectionAttributes: ["DEFAULT"],
-    });
+      // Save image
+      const fileName = `${Date.now()}-${img.name}`;
+      const filePath = path.join(uploadDir, fileName);
+      fs.writeFileSync(filePath, buffer);
 
-    const rekogRes = await rekog.send(indexCmd);
+      // Send to Rekognition
+      const indexCmd = new IndexFacesCommand({
+        CollectionId: process.env.AWS_REKOG_COLLECTION!,
+        ExternalImageId: roll, // SAME for all images
+        Image: { Bytes: buffer },
+        DetectionAttributes: ["DEFAULT"],
+      });
 
-    const faceRecord = rekogRes.FaceRecords?.[0];
-    const faceId = faceRecord?.Face?.FaceId || null;
-    const imageId = faceRecord?.Face?.ImageId || null;
+      const r = await rekog.send(indexCmd);
 
-    // ---------------------------------------------------------
-    // 4️⃣ Save Student in MySQL using Prisma
-    // ---------------------------------------------------------
+      if (r.FaceRecords && r.FaceRecords.length > 0) {
+        const record = r.FaceRecords[0];
+
+        if (record.Face?.FaceId) faceIds.push(record.Face.FaceId);
+        if (record.Face?.ImageId) imageIds.push(record.Face.ImageId);
+      }
+    }
+
+    // Save in database
     await prisma.student.create({
       data: {
         name,
         roll,
         parentEmail,
-        photo: fileName,
-        rekogFaceId: faceId,
-        rekogImageId: imageId,
+        // we save only FIRST photo as display photo
+        photo: images[0].name,
         rekogExternalId: roll,
+        rekogFaceId: faceIds.join(","), // save all faceIds
+        rekogImageId: imageIds.join(","), // save all Rekog ImageIds
       },
     });
 
-    return NextResponse.json({ success: true, message: "Student added" });
+    return NextResponse.json({
+      success: true,
+      message: "Student added successfully with multiple photos",
+    });
   } catch (err: any) {
     console.error("Student Add Error:", err);
     return NextResponse.json(
