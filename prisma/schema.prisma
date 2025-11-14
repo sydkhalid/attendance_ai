@@ -14,12 +14,26 @@ datasource db {
 }
 
 model Student {
-  id           Int      @id @default(autoincrement())
-  name         String
-  roll         String
-  parentEmail  String
-  image        Bytes?   // we may remove later
-  embedding    Json
-  createdAt    DateTime @default(now())
+  id              Int          @id @default(autoincrement())
+  name            String
+  roll            String
+  parentEmail     String
+  photo           String
+
+  rekogFaceId     String?
+  rekogImageId    String?
+  rekogExternalId String?
+
+  attendance      Attendance[]  // 👈 REQUIRED reverse relation
+
+  createdAt       DateTime      @default(now())
 }
 
+model Attendance {
+  id         Int      @id @default(autoincrement())
+  studentId  Int
+  date       DateTime @default(now())
+  status     String
+
+  student    Student  @relation(fields: [studentId], references: [id])
+}

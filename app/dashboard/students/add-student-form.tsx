@@ -12,9 +12,12 @@ export default function AddStudentForm() {
 
   const [image, setImage] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
   const handleImage = (e: any) => {
     const file = e.target.files[0];
+    if (!file) return;
+
     setImage(file);
     setPreview(URL.createObjectURL(file));
   };
@@ -23,9 +26,11 @@ export default function AddStudentForm() {
     e.preventDefault();
 
     if (!form.name || !form.roll || !form.parentEmail || !image) {
-      toast.error("All fields and photo are required!");
+      toast.error("All fields & photo are required!");
       return;
     }
+
+    setLoading(true);
 
     const data = new FormData();
     data.append("name", form.name);
@@ -39,11 +44,17 @@ export default function AddStudentForm() {
     });
 
     const json = await res.json();
+    setLoading(false);
 
     if (json.success) {
       toast.success("Student added successfully!");
+
+      // RESET FORM
+      setForm({ name: "", roll: "", parentEmail: "" });
+      setImage(null);
+      setPreview(null);
     } else {
-      toast.error(json.message || "Failed to add student!");
+      toast.error(json.message || "Failed to add student");
     }
   };
 
@@ -52,8 +63,6 @@ export default function AddStudentForm() {
       <h2 className="text-lg font-semibold mb-4">Add Student</h2>
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-
-        {/* Student Name */}
         <input
           type="text"
           placeholder="Student Name"
@@ -62,7 +71,6 @@ export default function AddStudentForm() {
           onChange={(e) => setForm({ ...form, name: e.target.value })}
         />
 
-        {/* Roll No */}
         <input
           type="text"
           placeholder="Roll Number"
@@ -71,7 +79,6 @@ export default function AddStudentForm() {
           onChange={(e) => setForm({ ...form, roll: e.target.value })}
         />
 
-        {/* Parent Email */}
         <input
           type="email"
           placeholder="Parent Email"
@@ -80,22 +87,26 @@ export default function AddStudentForm() {
           onChange={(e) => setForm({ ...form, parentEmail: e.target.value })}
         />
 
-        {/* Photo Upload + Preview */}
         <div>
-          <label className="block mb-1 text-sm text-gray-600">Upload Student Photo</label>
+          <label className="block mb-1 text-sm text-gray-600">
+            Upload Student Photo
+          </label>
           <input type="file" accept="image/*" onChange={handleImage} />
 
           {preview && (
-            <img src={preview} className="w-32 h-32 mt-2 object-cover rounded border" />
+            <img
+              src={preview}
+              className="w-32 h-32 mt-2 object-cover rounded border"
+            />
           )}
         </div>
 
-        {/* Submit */}
         <button
           type="submit"
-          className="bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition"
+          disabled={loading}
+          className="bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition disabled:bg-gray-400"
         >
-          Save Student
+          {loading ? "Saving..." : "Save Student"}
         </button>
       </form>
     </div>

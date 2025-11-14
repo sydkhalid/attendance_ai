@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   experimental: {
-    turbo: false, // ❌ Disable Turbopack
+    turbo: false,
   },
   webpack: (config) => {
     config.externals = [...(config.externals || []), "canvas"];
@@ -9,4 +9,4 @@ const nextConfig = {
   },
 };
 
-export default nextConfig;
+module.exports = nextConfig;

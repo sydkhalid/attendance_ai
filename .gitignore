@@ -49,3 +49,5 @@ dist
 out
 npm-debug.log
 yarn-error.log
+
+/lib/generated/prisma
